@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="template.css">
+</head>
+<body>
+  <div class="dropdowns">
+    <div class="dropdown">
+      <select id="select-content">
+        <option value="" style="display:none">Choose one option</option>
+        <option class="option-content" data-index="0" value="1">Delete category</option>
+        <option class="option-content" data-index="1" value="2">Create category</option>
+        <option class="option-content" data-index="2" value="3">Apply a category</option>
+      </select>
+    </div>
+    <div class="dropdown">
+      <select id="select-content-helpers">
+        <option value="" style="display:none">Helpers</option>
+        <!-- <option class="option-content-helpers" data-index="0" value="1">Info</option> -->
+        <option class="option-content-helpers" data-index="1" value="2">About</option>
+        <option class="option-content-helpers" id='newsletterLink' data-index="2" value="https://buyyourhouse.substack.com">Substack</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="elements">
+    <input id="deleteLabel" placeholder="Category to delete" />
+    <button id="deleteCategoryBtn">Delete category</button>
+  </div>
+
+  <div class="elements">
+    <input id="createLabel" placeholder="Category to create" />
+    <button id="createBtn">Create category</button>
+  </div>
+
+  <div class="elements">
+    <input id="searchLabel" placeholder="Label to search" />
+    <input id="sendersEmail" placeholder="Senders email" />
+    <button id="applyCategoryBtn">Apply a category</button>
+  </div>
+
+  <div id="helper-doc" class="helper-doc" style="display:none;">
+    <strong>About This Extension</strong>
+    <ul>
+      <li> This extension automatically manages your Gmail categories. </li>
+      <li> It allows you to create, delete, and apply categories to your emails with ease. </li>
+      <li> Simply enter the category name and sender's email, and let the extension do the rest! </li>
+      <li> It's designed to help you keep your inbox organized. </li>
+    </ul>
+  </div>
+
+  <script src="operations.js"></script>
+  <script src="listeners.js"></script>
+</body>
+</html>
