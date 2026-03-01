@@ -1,2 +1,3 @@
-# GmailMozillaExtension
-GmailMozillaExtension
+# Mail Category Manager
+Mail Category Manager
+
