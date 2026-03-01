@@ -5,7 +5,8 @@
   "permissions": [
     "identity",
     "notifications",
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "content_security_policy": "script-src 'self'; object-src 'self'",
   "browser_specific_settings": {

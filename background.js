@@ -4,59 +4,43 @@
  */
 
 async function getAccessToken() {
-  const clientId = CONFIG.client_id;
-
-  if (!clientId) {
-    throw new Error("OAuth client_id not found in manifest.");
+  // Check if token already exists
+  const stored = await browser.storage.local.get("access_token");
+  if (stored.access_token) {
+    return stored.access_token;
   }
 
+  // If not, do the OAuth flow
   const redirectUri = browser.identity.getRedirectURL();
-  console.log("Redirect URI:", redirectUri);
-
   const scopes = CONFIG.scopes.join(" ");
-
   const authUrl =
     "https://accounts.google.com/o/oauth2/v2/auth" +
-    "?client_id=" + encodeURIComponent(clientId) +
+    "?client_id=" + encodeURIComponent(CONFIG.client_id) +
     "&response_type=token" +
     "&redirect_uri=" + encodeURIComponent(redirectUri) +
     "&scope=" + encodeURIComponent(scopes);
 
   return new Promise((resolve, reject) => {
     browser.identity.launchWebAuthFlow(
-      {
-        url: authUrl,
-        interactive: true
-      },
-      (redirectedTo) => {
-
+      { url: authUrl, interactive: true },
+      async (redirectedTo) => {
         if (browser.runtime.lastError) {
-          console.error("Runtime error:", browser.runtime.lastError);
           reject(browser.runtime.lastError);
           return;
         }
-
-        if (!redirectedTo) {
-          reject(new Error("No redirect URL received."));
-          return;
-        }
-
-        console.log("Redirected To:", redirectedTo);
-
         const hash = new URL(redirectedTo).hash.substring(1);
         const params = new URLSearchParams(hash);
-
         const accessToken = params.get("access_token");
-
         if (!accessToken) {
-          reject(new Error("Access token not found in response."));
+          reject(new Error("Access token not found"));
           return;
         }
 
+        // Save token for next time
+        await browser.storage.local.set({ access_token: accessToken });
         resolve(accessToken);
       }
     );
-
   });
 }
 
