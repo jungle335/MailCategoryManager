@@ -7,7 +7,16 @@
     "notifications",
     "tabs"
   ],
-  "content_security_policy": "script-src 'self' https://cdnjs.cloudflare.com; object-src 'self'",
+  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{315900f0-158b-11f1-b4ac-0800200c9a66}",
+      "data_collection_permissions": {
+        "required": ["authenticationInfo"],
+        "optional": ["technicalAndInteraction"]
+      }
+    }
+  },
   "background": {
     "scripts": ["config.js", "background.js"]
   },
