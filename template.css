@@ -149,3 +149,42 @@ button:hover {
 ul {
     padding: 0;
 }
+
+#labelPicker {
+    display:flex; 
+    align-items:center; 
+    gap:8px;
+}
+
+#colorPicker {
+    position: relative;
+}
+
+#colorSwatch {
+    width: 28px; 
+    height: 28px; 
+    border-radius: 6px;
+    background:#1a73e8; 
+    cursor:pointer;
+    border: 2px solid #aaa; 
+    display:inline-block;
+}
+
+#colorDropdown {
+    display:none; 
+    position:absolute; 
+    top:34px; 
+    left:0;
+    background:#222; 
+    padding:8px; 
+    border-radius:8px;
+    flex-wrap:wrap; 
+    gap:6px; 
+    width:152px;
+    z-index:999; 
+    border:1px solid #444;
+}
+
+#colorDropdown.open {
+    display: flex;
+}

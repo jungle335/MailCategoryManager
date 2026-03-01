@@ -8,9 +8,9 @@
     <div class="dropdown">
       <select id="select-content">
         <option value="" style="display:none">Choose one option</option>
-        <option class="option-content" data-index="0" value="1">Delete category</option>
-        <option class="option-content" data-index="1" value="2">Create category</option>
-        <option class="option-content" data-index="2" value="3">Apply a category</option>
+        <option class="option-content" data-index="0" value="1">Create category</option>
+        <option class="option-content" data-index="1" value="2">Delete category</option>
+        <option class="option-content" data-index="2" value="3">Statistics</option>
       </select>
     </div>
     <div class="dropdown">
@@ -19,36 +19,45 @@
         <!-- <option class="option-content-helpers" data-index="0" value="1">Info</option> -->
         <option class="option-content-helpers" data-index="1" value="2">About</option>
         <option class="option-content-helpers" id='newsletterLink' data-index="2" value="https://buyyourhouse.substack.com">Substack</option>
+        <option class="option-content-helpers" id='privacy' data-index="3" value="privacy.html">Privacy Policy</option>
       </select>
     </div>
   </div>
   
+  <div class="elements">
+    <div id="labelPicker">
+      <input id="createLabel" placeholder="Category to create" />
+      <div id="colorPicker">
+        <div id="colorSwatch"></div>
+        <div id="colorDropdown"></div>
+      </div>
+    </div>
+    <button id="createBtn">Create category</button>
+    <button id="exportBtn">Export all labels</button>
+  </div>
+
   <div class="elements">
     <input id="deleteLabel" placeholder="Category to delete" />
     <button id="deleteCategoryBtn">Delete category</button>
   </div>
 
   <div class="elements">
-    <input id="createLabel" placeholder="Category to create" />
-    <button id="createBtn">Create category</button>
-  </div>
-
-  <div class="elements">
-    <input id="searchLabel" placeholder="Label to search" />
-    <input id="sendersEmail" placeholder="Senders email" />
-    <button id="applyCategoryBtn">Apply a category</button>
-  </div>
+    <div id="statsArea" style="display:none;">
+      <canvas id="statsChart"></canvas>
+    </div>
+  </div>  
 
   <div id="helper-doc" class="helper-doc" style="display:none;">
     <strong>About This Extension</strong>
     <ul>
       <li> This extension automatically manages your Gmail categories. </li>
-      <li> It allows you to create, delete, and apply categories to your emails with ease. </li>
-      <li> Simply enter the category name and sender's email, and let the extension do the rest! </li>
-      <li> It's designed to help you keep your inbox organized. </li>
+      <li> It allows you to create, delete, and see statistics for your labels with ease. </li>
+      <li> It's designed to help you keep your labels organized. </li>
+      <li> The application supports hierarchical label creation. By entering a path such as example1/example2/example3 in the input field, the system will automatically generate a three-level nested label structure. Alternatively, you may enter any single name to create a standalone label. </li>
     </ul>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <script src="operations.js"></script>
   <script src="listeners.js"></script>
 </body>
