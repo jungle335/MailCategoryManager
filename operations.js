@@ -100,7 +100,7 @@ function createCategory() {
 function initColorPicker() {
   const swatch = document.getElementById("colorSwatch");
   const dropdown = document.getElementById("colorDropdown");
-  let selectedColor = "#1a73e8";
+  let selectedColor = "#fb4c2f";
 
   const COLORS = [
     "#fb4c2f", "#f691b3", "#f6c5be", "#efa093",
