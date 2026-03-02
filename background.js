@@ -217,14 +217,6 @@ async function getLabelStats() {
   };
 }
 
-function clearAllInputs() {
-  document.querySelectorAll("input").forEach(el => {
-    el.value = "";
-  });
-  // Reset color picker
-  document.getElementById("colorSwatch").style.background = "#fb4c2f";
-  window.getSelectedColor = () => "#fb4c2f";
-}
 
 browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log("Received message:", request);

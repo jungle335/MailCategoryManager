@@ -20,6 +20,27 @@ async function getLabelId(labelName) {
   return label ? label.id : null;
 }
 
+/**
+ * It updates the historic of statistics
+ */
+
+async function refreshStats() {
+  const response = await browser.runtime.sendMessage({ action: "getLabelStats" });
+  if (response?.success) {
+    displayStats(response.stats);
+  }
+}
+
+
+function clearAllInputs() {
+  document.querySelectorAll("input").forEach(el => {
+    el.value = "";
+  });
+  // Reset color picker
+  document.getElementById("colorSwatch").style.background = "#fb4c2f";
+  window.getSelectedColor = () => "#fb4c2f";
+}
+
 
 /**
 * Event listener for deleting a label
@@ -42,13 +63,11 @@ function deleteCategory() {
         browser.runtime.sendMessage({
             action: "deleteLabel",
             labelName: label_text
-        }).then(_ => {
-            browser.notifications.create({
-              type: "basic",
-              iconUrl: browser.runtime.getURL("icons/success-48.png"),
-              title: "MailCategoryManager",
-              message: "Label deleted successfully!"
-          });
+        }).then(response => {
+            if (response?.success) {
+              clearAllInputs(); 
+              refreshStats();
+            }
         });
       }
   });
@@ -81,13 +100,10 @@ function createCategory() {
 
         }).then(response => {
             console.log("Response:", response);
-            
-            browser.notifications.create({
-              type: "basic",
-              iconUrl: browser.runtime.getURL("icons/success-48.png"),
-              title: "MailCategoryManager",
-              message: "Label created successfully!"
-          });
+            if (response?.success) {
+              clearAllInputs(); 
+              refreshStats();
+            }
         });
       } 
   });

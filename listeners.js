@@ -41,9 +41,8 @@ function menuHelper() {
     const value = selectedOption.value;
 
     // Case 1: Show documentation
-    if (index === "1") {
+    if (index === "1") 
       helperDoc.style.display = "block";
-    }
     // Case 2: Open external link
     else if (index === "2" && value) {
       browser.tabs.create({ url: value });
