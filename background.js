@@ -116,10 +116,10 @@ async function deleteLabel(labelName) {
       }
       else {
         browser.notifications.create("label_deleted", {
-            type: "basic",
-            iconUrl: browser.runtime.getURL("icons/success-48.png"),
-            title: "GmailCategoryManager",
-            message: `Label '${labelName}' deleted successfully.`
+          type: "basic",
+          iconUrl: browser.runtime.getURL("icons/success-48.png"),
+          title: "GmailCategoryManager",
+          message: `Label '${labelName}' deleted successfully.`
         });
       }
 
@@ -289,7 +289,4 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
       });
     return true; 
   }
-
-  
-  clearAllInputs();
 });
