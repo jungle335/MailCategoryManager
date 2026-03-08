@@ -2,6 +2,7 @@
 <html>
 <head>
   <link rel="stylesheet" href="template.css">
+  <script defer src="operations.js"></script>
 </head>
 <body>
   <div class="dropdowns">
@@ -16,8 +17,7 @@
     <div class="dropdown">
       <select id="select-content-helpers">
         <option value="" style="display:none">Helpers</option>
-        <!-- <option class="option-content-helpers" data-index="0" value="1">Info</option> -->
-        <option class="option-content-helpers" data-index="1" value="2">About</option>
+        <option class="option-content-helpers" data-index="1" value="1">About</option>
         <option class="option-content-helpers" id='newsletterLink' data-index="2" value="https://buyyourhouse.substack.com">Substack</option>
         <option class="option-content-helpers" id='privacy' data-index="3" value="privacy.html">Privacy Policy</option>
       </select>
@@ -56,8 +56,5 @@
       <li> The application supports hierarchical label creation. By entering a path such as example1/example2/example3 in the input field, the system will automatically generate a three-level nested label structure. Alternatively, you may enter any single name to create a standalone label. </li>
     </ul>
   </div>
-
-  <script src="operations.js"></script>
-  <script src="listeners.js"></script>
 </body>
 </html>

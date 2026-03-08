@@ -1,14 +1,16 @@
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 /**
  * It returns the id of the matched label
  * @param {String} labelName 
  * @returns 
  */
+
 async function getLabelId(labelName) {
   const token = await getAccessToken();
   
   const response = await fetch(
-    "https://www.googleapis.com/gmail/v1/users/me/labels",
-    {
+    "https://www.googleapis.com/gmail/v1/users/me/labels", {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -18,27 +20,6 @@ async function getLabelId(labelName) {
   const data = await response.json();
   const label = data.labels?.find(l => l.name === labelName);
   return label ? label.id : null;
-}
-
-/**
- * It updates the historic of statistics
- */
-
-async function refreshStats() {
-  const response = await browser.runtime.sendMessage({ action: "getLabelStats" });
-  if (response?.success) {
-    displayStats(response.stats);
-  }
-}
-
-
-function clearAllInputs() {
-  document.querySelectorAll("input").forEach(el => {
-    el.value = "";
-  });
-  // Reset color picker
-  document.getElementById("colorSwatch").style.background = "#fb4c2f";
-  window.getSelectedColor = () => "#fb4c2f";
 }
 
 
@@ -53,25 +34,28 @@ function deleteCategory() {
       if (!label_text) {
         console.error("Label name is empty!");
 
-        browser.runtime.sendMessage({
+        browserAPI.runtime.sendMessage({
           action: "notify_error",
           message: "Label name is empty!"
         });
         return;
       }
       else {
-        browser.runtime.sendMessage({
-            action: "deleteLabel",
-            labelName: label_text
-        }).then(response => {
-            if (response?.success) {
-              clearAllInputs(); 
-              refreshStats();
-            }
+        const response = await new Promise(resolve => {
+            browserAPI.runtime.sendMessage({
+              action: "deleteLabel",
+              labelName: label_text
+          }, resolve);
         });
+
+        if (response?.success) {
+          clearAllInputs(); 
+          refreshStats();
+        }
       }
   });
 }
+
 
 /**
 * Event listener for creating label option
@@ -81,38 +65,68 @@ function createCategory() {
       const label_text = document.getElementById("createLabel").value;
       const color = window.getSelectedColor();
 
-      console.log("Label to create:", label_text);
-      console.log("Selected color:", color);
+      console.log("Label to create:", label_text + "; Selected color:", color);
+
       if (!label_text) {
         console.error("Label name is empty!");
 
-        browser.runtime.sendMessage({
+        browserAPI.runtime.sendMessage({
           action: "notify_error",
           message: "Label name is empty!"
         });
         return;
       }
       else {
-        browser.runtime.sendMessage({
-            action: "createLabel",
-            labelName: label_text,
-            color: color
-
-        }).then(response => {
-            console.log("Response:", response);
-            if (response?.success) {
-              clearAllInputs(); 
-              refreshStats();
-            }
+        const response = await new Promise(resolve => {
+            browserAPI.runtime.sendMessage({
+              action: "createLabel",
+              labelName: label_text,
+              color: color
+            }, resolve);
         });
+   
+        if (response?.success) {
+          clearAllInputs(); 
+          refreshStats();
+        } else {
+          console.error("createLabel failed", response);
+        }
       } 
   });
 }
 
 
 /**
+ * It updates the historic of statistics
+ */
+
+async function refreshStats() {
+  const response = await new Promise(resolve => {
+    browserAPI.runtime.sendMessage({ action: "getLabelStats" }, resolve);
+  });
+  console.log('refreshStats response:', response);
+  if (response?.success) {
+    displayStats(response.stats);
+  }
+}
+
+/**
+ * It clears all user inputs
+ */
+
+function clearAllInputs() {
+  document.querySelectorAll("input").forEach(el => {
+    el.value = "";
+  });
+  // Reset color picker
+  document.getElementById("colorSwatch").style.background = "#fb4c2f";
+  window.getSelectedColor = () => "#fb4c2f";
+}
+
+/**
  * Color picker for the catergory label
  */
+
 function initColorPicker() {
   const swatch = document.getElementById("colorSwatch");
   const dropdown = document.getElementById("colorDropdown");
@@ -250,20 +264,20 @@ function renderTab(stats) {
 
 
 async function getStatistics() {
-    try {
-      const response = await browser.runtime.sendMessage({
-        action: "getLabelStats"
-      });
-
-      if (response?.success) {
-        displayStats(response.stats);
-      } else {
-        console.error("Failed to get stats:", response?.error);
-      }
-    } catch (error) {
-      console.error("Error fetching stats:", error);
-    } 
+  try {
+    const response = await new Promise(resolve => {
+      browserAPI.runtime.sendMessage({ action: "getLabelStats" }, resolve);
+    });
+    if (response?.success) {
+      displayStats(response.stats);
+    } else {
+      console.error("Failed to get stats:", response?.error);
+    }
+  } catch (error) {
+    console.error("Error fetching stats:", error);
+  }
 }
+
 
 /**
  * Export all the labels names with their colors in a JSON
@@ -271,8 +285,8 @@ async function getStatistics() {
 function exportLabels() {
   document.getElementById("exportBtn").addEventListener("click", async () => {
     try {
-      const response = await browser.runtime.sendMessage({
-        action: "getLabelStats"
+      const response = await new Promise(resolve => {
+        browserAPI.runtime.sendMessage({ action: "getLabelStats" }, resolve);
       });
 
       if (!response?.success) {
@@ -296,8 +310,74 @@ function exportLabels() {
   });
 }
 
+/**
+* Event listener for the leftmost dropdown menu
+*/
+
+function menuListener() {
+    const select = document.getElementById("select-content");
+
+    select.addEventListener("change", (event) => {
+        const selectedOption = event.target.selectedOptions[0]; // selected <option>
+
+        if (selectedOption.classList.contains("option-content")) {
+            const elements = document.querySelectorAll('.elements');
+            const idx = parseInt(selectedOption.dataset.index, 10);
+
+            elements.forEach((el, i) => {
+                el.style.display = (i === idx) ? 'block' : 'none';
+            });
+
+            const helperDoc = document.getElementById("helper-doc");
+            helperDoc.style.display = "none";
+        }
+    });
+}
+
+/**
+* Event listener for the rightmost dropdown menu
+*/
+
+function menuHelper() {
+  const select = document.getElementById("select-content-helpers");
+  
+  select.addEventListener("change", function () {
+    const elements = document.querySelectorAll('.elements');
+    elements.forEach(el => {
+      el.style.display = 'none';
+    });
+    const helperDoc = document.getElementById("helper-doc");
+    const selectedOption = select.selectedOptions[0];
+    if (!selectedOption) return;
+    
+    const index = selectedOption.dataset.index;
+    const value = selectedOption.value;
+
+    // Case 1: Show documentation
+    if (index === "1") 
+      helperDoc.style.display = "block";
+    // Case 2: Open external link
+    else if (index === "2" && value) {
+      browserAPI.tabs.create({ url: value });
+      helperDoc.style.display = "none";
+    }
+    // Case 3: Open internal HTML page inside popup
+    else if (index === "3" && value) {
+      browserAPI.tabs.create({ url: value });
+    }
+    // Default: Hide documentation
+    else 
+      helperDoc.style.display = "none";
+
+    // Always reset dropdown after action
+    select.value = "";
+  });
+}
+
+menuListener();
+menuHelper();
+exportLabels();
 initColorPicker();
+getStatistics();
 deleteCategory();
 createCategory();
-getStatistics();
-exportLabels();

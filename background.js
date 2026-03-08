@@ -1,17 +1,24 @@
+const browserAPI = typeof browser !== 'undefined' ? browser : chrome;
+
 /**
  * It authenticates the user using OAuth2
  * @returns the authentification token
  */
 
 async function getAccessToken() {
-  // Check if token already exists
-  const stored = await browser.storage.local.get("access_token");
+  // use storage.local consistently
+  const stored = await new Promise((resolve) => {
+    browserAPI.storage.local.get(['access_token'], resolve);  // ← added .local
+  });
+
   if (stored.access_token) {
+    console.log('Token found in storage:', stored.access_token);
     return stored.access_token;
   }
 
-  // If not, do the OAuth flow
-  const redirectUri = browser.identity.getRedirectURL();
+  const redirectUri = browserAPI.identity.getRedirectURL();
+  console.log('Redirect URI:', redirectUri);
+
   const scopes = CONFIG.scopes.join(" ");
   const authUrl =
     "https://accounts.google.com/o/oauth2/v2/auth" +
@@ -20,24 +27,28 @@ async function getAccessToken() {
     "&redirect_uri=" + encodeURIComponent(redirectUri) +
     "&scope=" + encodeURIComponent(scopes);
 
+
   return new Promise((resolve, reject) => {
-    browser.identity.launchWebAuthFlow(
+    browserAPI.identity.launchWebAuthFlow(
       { url: authUrl, interactive: true },
       async (redirectedTo) => {
-        if (browser.runtime.lastError) {
-          reject(browser.runtime.lastError);
+        console.log('Redirected to:', redirectedTo);
+        if (browserAPI.runtime.lastError) {
+          console.error('Auth error:', browserAPI.runtime.lastError.message);
+          reject(browserAPI.runtime.lastError);
           return;
         }
         const hash = new URL(redirectedTo).hash.substring(1);
         const params = new URLSearchParams(hash);
         const accessToken = params.get("access_token");
+        console.log('Token extracted:', accessToken);
         if (!accessToken) {
           reject(new Error("Access token not found"));
           return;
         }
-
-        // Save token for next time
-        await browser.storage.local.set({ access_token: accessToken });
+        await new Promise((res) => {
+          browserAPI.storage.local.set({ access_token: accessToken }, res);  // ← added .local
+        });
         resolve(accessToken);
       }
     );
@@ -49,9 +60,9 @@ async function handlerToken() {
     const token = await getAccessToken();
     return token; 
   } catch (error) {
-    browser.notifications.create("auth_denied", {
+    browserAPI.notifications.create(`auth_denied_${Date.now()}`, {
       type: "basic",
-      iconUrl: browser.runtime.getURL("icons/icon-48.png"),
+      iconUrl: browserAPI.runtime.getURL("icons/error-48.png"),
       title: "MailCategoryManager",
       message: "Access denied. Please try again."
     });
@@ -89,12 +100,14 @@ async function deleteLabel(labelName) {
     if (!label) {
       console.error(`Label '${labelName}' not found`);
 
-      browser.notifications.create("label_error", {
+      browserAPI.notifications.create(`label_error_${Date.now()}`, {
         type: "basic",
-        iconUrl: browser.runtime.getURL("icons/error-48.png"),
+        iconUrl: browserAPI.runtime.getURL("icons/error-48.png"),
         title: "GmailCategoryManager Error",
         message: `Label '${labelName}' not found!`
-      });
+    }, (id) => {
+        console.log('Notification created:', id);
+    });
 
       return `Label '${labelName}' not found.`;
     }
@@ -115,9 +128,9 @@ async function deleteLabel(labelName) {
         return `Failed to delete label: ${errorData.error?.message || deleteResponse.statusText}`;
       }
       else {
-        browser.notifications.create("label_deleted", {
+        browserAPI.notifications.create(`label_deleted_${Date.now()}`, {
           type: "basic",
-          iconUrl: browser.runtime.getURL("icons/success-48.png"),
+          iconUrl: browserAPI.runtime.getURL("icons/success-48.png"),
           title: "GmailCategoryManager",
           message: `Label '${labelName}' deleted successfully.`
         });
@@ -171,9 +184,9 @@ async function createLabel(labelName, color) {
     }
 
     console.log(`Label created: ${createdLabel.name} with ID: ${createdLabel.id}`);
-    browser.notifications.create("label_created", {
+    browserAPI.notifications.create(`label_created_${Date.now()}`, {
       type: "basic",
-      iconUrl: browser.runtime.getURL("icons/success-48.png"),
+      iconUrl: browserAPI.runtime.getURL("icons/success-48.png"),
       title: "GmailCategoryManager",
       message: `Label created: ${createdLabel.name} with ID: ${createdLabel.id}`
     });
@@ -181,9 +194,9 @@ async function createLabel(labelName, color) {
 
   } catch (error) {
     console.error("Error creating label:", error.message);
-    browser.notifications.create("label_created_error", {
+    browserAPI.notifications.create(`label_created_error_${Date.now()}`, {
       type: "basic",
-      iconUrl: browser.runtime.getURL("icons/error-48.png"),
+      iconUrl: browserAPI.runtime.getURL("icons/error-48.png"),
       title: "GmailCategoryManager Error",
       message: `Error creating label: ${error.message}`
     });
@@ -218,13 +231,13 @@ async function getLabelStats() {
 }
 
 
-browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
+browserAPI.runtime.onMessage.addListener((request, sender, sendResponse) => {
   console.log("Received message:", request);
 
   if (request.action === "notify_error") {
-    browser.notifications.create("label_error", {
+    browserAPI.notifications.create(`label_error_${Date.now()}`, {
       type: "basic",
-      iconUrl: browser.runtime.getURL("icons/error-48.png"),
+      iconUrl: browserAPI.runtime.getURL("icons/error-48.png"),
       title: "GmailCategoryManager Error",
       message: request.message || "An error occurred"
     });
@@ -239,9 +252,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: true, result });
       })
       .catch(error => {
-        browser.notifications.create("label_error", {
+        browserAPI.notifications.create(`label_error_${Date.now()}`, {
           type: "basic",
-          iconUrl: browser.runtime.getURL("icons/error-48.png"),
+          iconUrl: browserAPI.runtime.getURL("icons/error-48.png"),
           title: "GmailCategoryManager Error",
           message: error.message || "An error occurred"
         });
@@ -249,7 +262,7 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: false, error: error.message });
       });
 
-    return true; // keep message channel open for async response
+    return true; 
   }
 
   if (request.action === "deleteLabel") {
@@ -258,9 +271,9 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: true, result });
       })
       .catch(error => {
-        browser.notifications.create("label_error", {
+        browserAPI.notifications.create(`label_error_${Date.now()}`, {
           type: "basic",
-          iconUrl: browser.runtime.getURL("icons/error-48.png"),
+          iconUrl: browserAPI.runtime.getURL("icons/error-48.png"),
           title: "GmailCategoryManager Error",
           message: error.message || "An error occurred"
         });
@@ -272,13 +285,13 @@ browser.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 
   if (request.action === "getLabelStats") {
-    getLabelStats()
-      .then(stats => {
-        sendResponse({ success: true, stats });
-      })
-      .catch(error => {
-        sendResponse({ success: false, error: error.message });
-      });
-    return true; 
+      getLabelStats()
+        .then(stats => {
+          sendResponse({ success: true, stats });
+        })
+        .catch(error => {
+          sendResponse({ success: false, error: error.message });
+        });
+      return true; 
   }
 });
